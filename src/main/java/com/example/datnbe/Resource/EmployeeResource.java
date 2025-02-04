@@ -20,8 +20,8 @@ public class EmployeeResource {
     }
 
     @PostMapping("/get-employee-by-id")
-    public ResponseEntity<List<EmployeeDTO>> getAllEmployee (@RequestParam String id) {
-        return ResponseEntity.ok(employeeService.getAllEmployee());
+    public ResponseEntity<EmployeeDTO> getAllEmployee (@RequestParam String id) {
+        return ResponseEntity.ok(employeeService.getEmployeeById(id));
     }
 
     @PostMapping("/create-employee")

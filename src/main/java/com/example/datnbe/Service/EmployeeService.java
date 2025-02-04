@@ -30,8 +30,6 @@ public class EmployeeService {
                 .collect(Collectors.toList());
     }
 
-
-
     public EmployeeDTO getEmployeeById(String id) {
         Optional<Employee> employee = employeeRepository.findById(id);
         if (employee.isEmpty()) {
