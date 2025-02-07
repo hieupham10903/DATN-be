@@ -1,10 +1,16 @@
 package com.example.datnbe.Resource;
 
+import com.example.datnbe.Entity.Criteria.EmployeeCriteria;
 import com.example.datnbe.Entity.DTO.EmployeeDTO;
 import com.example.datnbe.Service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import tech.jhipster.web.util.PaginationUtil;
 
 import java.util.List;
 
@@ -13,6 +19,14 @@ import java.util.List;
 public class EmployeeResource {
     @Autowired
     private EmployeeService employeeService;
+
+    @PostMapping("/search-employee")
+    public ResponseEntity<List<EmployeeDTO>> getAllCoreApi(@RequestBody EmployeeCriteria criteria, Pageable pageable) {
+        Page<EmployeeDTO> page = employeeService.findByCriteria(criteria, pageable);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
 
     @PostMapping("/get-all-employee")
     public ResponseEntity<List<EmployeeDTO>> getAllEmployee () {
