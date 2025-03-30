@@ -4,6 +4,8 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import com.example.datnbe.Mapper.EntityMapper;
+
 
 import java.util.List;
 

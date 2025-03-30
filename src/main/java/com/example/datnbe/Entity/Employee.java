@@ -28,35 +28,12 @@ public class Employee {
     @Column(name = "gender")
     private String gender;
 
-    public String getId() {
-        return this.id;
-    }
+    @Column(name = "code")
+    private String code;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    @Column(name = "email")
+    private String email;
 
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public LocalDate getDob() {
-        return this.dob;
-    }
-
-    public void setDob(LocalDate dob) {
-        this.dob = dob;
-    }
-
-    public String getGender() {
-        return this.gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
+    @Column(name = "role")
+    private String role;
 }

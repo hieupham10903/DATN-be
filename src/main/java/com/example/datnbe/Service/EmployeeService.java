@@ -62,7 +62,8 @@ public class EmployeeService extends ArcQueryService<Employee> {
     }
 
     public EmployeeDTO createEmployee (EmployeeDTO dto) {
-        Employee employee = new Employee(UUID.randomUUID().toString(), dto.getName(), dto.getDob(), dto.getGender());
+        Employee employee = new Employee(UUID.randomUUID().toString(), dto.getName(), dto.getDob(), dto.getGender(),
+                dto.getCode(), dto.getEmail(), dto.getRole());
         EmployeeDTO employeeDTO = employeeMapper.toDto(employeeRepository.save(employee));
         return employeeDTO;
     }
