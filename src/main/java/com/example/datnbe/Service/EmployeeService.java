@@ -42,6 +42,12 @@ public class EmployeeService extends ArcQueryService<Employee> {
             if (criteria.getGender() != null && !"undefined".equals(criteria.getGender().getContains())) {
                 specification = specification.and(buildStringSpecification(criteria.getGender(), Employee_.gender));
             }
+            if (criteria.getRole() != null && !"undefined".equals(criteria.getRole().getEquals())) {
+                specification = specification.and(buildStringSpecification(criteria.getRole(), Employee_.role));
+            }
+            if (criteria.getEmail() != null && !"undefined".equals(criteria.getEmail().getContains())) {
+                specification = specification.and(buildStringSpecification(criteria.getEmail(), Employee_.email));
+            }
         }
         return specification;
     }

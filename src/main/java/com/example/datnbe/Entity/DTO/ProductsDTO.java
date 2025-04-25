@@ -1,5 +1,8 @@
 package com.example.datnbe.Entity.DTO;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 public class ProductsDTO {
     private String id;
     private String name;

@@ -2,6 +2,8 @@ package com.example.datnbe.Entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "order_items")
 public class OrderItems {

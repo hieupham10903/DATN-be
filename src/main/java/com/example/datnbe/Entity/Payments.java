@@ -2,6 +2,9 @@ package com.example.datnbe.Entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "payments")
 public class Payments {

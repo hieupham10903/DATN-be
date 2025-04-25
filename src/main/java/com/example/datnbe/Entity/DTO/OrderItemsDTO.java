@@ -1,5 +1,7 @@
 package com.example.datnbe.Entity.DTO;
 
+import java.math.BigDecimal;
+
 public class OrderItemsDTO {
     private String id;
     private String orderId;
