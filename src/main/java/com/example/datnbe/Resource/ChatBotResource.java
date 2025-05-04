@@ -58,7 +58,7 @@ public class ChatBotResource {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
         ResponseEntity<Map> response = restTemplate.exchange(OLLAMA_API_URL, HttpMethod.POST, entity, Map.class);
 
-        System.out.println("Ollama Response: " + response.getBody());
+//        System.out.println("Ollama Response: " + response.getBody());
 
         if (response.getBody() != null && response.getBody().containsKey("response")) {
             return response.getBody().get("response").toString();

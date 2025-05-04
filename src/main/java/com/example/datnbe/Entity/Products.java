@@ -12,6 +12,9 @@ public class Products {
     @Column(name = "id")
     private String id;
 
+    @Column(name = "code")
+    private String code;
+
     @Column(name = "name")
     private String name;
 
@@ -35,6 +38,9 @@ public class Products {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "image_detail")
+    private String imageDetail;
 
     public String getId() {
         return this.id;
@@ -106,5 +112,21 @@ public class Products {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getImageDetail() {
+        return imageDetail;
+    }
+
+    public void setImageDetail(String imageDetail) {
+        this.imageDetail = imageDetail;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

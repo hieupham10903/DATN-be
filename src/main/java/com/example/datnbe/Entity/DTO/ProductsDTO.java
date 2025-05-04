@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 public class ProductsDTO {
     private String id;
+    private String code;
     private String name;
     private String description;
     private BigDecimal price;
@@ -13,6 +14,7 @@ public class ProductsDTO {
     private String shelfId;
     private String imageUrl;
     private LocalDateTime createdAt;
+    private String imageDetail;
 
     public String getId() {
         return this.id;
@@ -20,6 +22,14 @@ public class ProductsDTO {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getName() {
@@ -84,5 +94,13 @@ public class ProductsDTO {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getImageDetail() {
+        return imageDetail;
+    }
+
+    public void setImageDetail(String imageDetail) {
+        this.imageDetail = imageDetail;
     }
 }
