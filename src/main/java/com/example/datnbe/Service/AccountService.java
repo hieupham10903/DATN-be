@@ -24,8 +24,18 @@ public class AccountService {
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public boolean authenticateAccount(String username, String password) {
-        Optional<Account> account = accountRepository.findByUsername(username);
+    public boolean authenticateAccountAdmin(String username, String password) {
+        Optional<Account> account = accountRepository.findByUsernameAndType(username, "EMPLOYEE");
+
+        if (account.isPresent()) {
+            return passwordEncoder.matches(password, account.get().getPassword());
+        }
+
+        return false;
+    }
+
+    public boolean authenticateAccountClient(String username, String password) {
+        Optional<Account> account = accountRepository.findByUsernameAndType(username, "GUEST");
 
         if (account.isPresent()) {
             return passwordEncoder.matches(password, account.get().getPassword());

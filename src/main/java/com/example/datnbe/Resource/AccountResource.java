@@ -15,9 +15,20 @@ public class AccountResource {
     @Autowired
     private AccountService accountService;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AccountRequest accountRequest) {
-        boolean isAuthenticated = accountService.authenticateAccount(accountRequest.getUsername(), accountRequest.getPassword());
+    @PostMapping("/login-admin")
+    public ResponseEntity<?> loginAdmin(@RequestBody AccountRequest accountRequest) {
+        boolean isAuthenticated = accountService.authenticateAccountAdmin(accountRequest.getUsername(), accountRequest.getPassword());
+
+        if (isAuthenticated) {
+            return ResponseEntity.ok("Đăng nhập thành công");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Tài khoản hoặc mật khẩu sai");
+        }
+    }
+
+    @PostMapping("/login-client")
+    public ResponseEntity<?> loginClient(@RequestBody AccountRequest accountRequest) {
+        boolean isAuthenticated = accountService.authenticateAccountClient(accountRequest.getUsername(), accountRequest.getPassword());
 
         if (isAuthenticated) {
             return ResponseEntity.ok("Đăng nhập thành công");

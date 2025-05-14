@@ -68,16 +68,21 @@ public class ProductResource {
 
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadImage(
+            @RequestParam("code") String code,
             @RequestParam("imageUrl") MultipartFile imageUrl,
             @RequestParam("imageDetail") List<MultipartFile> imageDetails) throws IOException {
 
         String uploadDir = "D:/DATN/Image/";
 
-        String urlPath = saveFile(uploadDir, imageUrl);
+        // Đổi tên ảnh chính thành {code}-M
+        String urlPath = saveFile(uploadDir, imageUrl, code + "-M");
 
+        // Đổi tên các ảnh chi tiết thành {code}-1, {code}-2, ...
         StringBuilder imageDetailPaths = new StringBuilder();
-        for (MultipartFile file : imageDetails) {
-            String path = saveFile(uploadDir, file);
+        for (int i = 0; i < imageDetails.size(); i++) {
+            MultipartFile file = imageDetails.get(i);
+            String fileName = code + "-" + (i + 1);
+            String path = saveFile(uploadDir, file, fileName);
             if (imageDetailPaths.length() > 0) {
                 imageDetailPaths.append(",");
             }
@@ -91,10 +96,13 @@ public class ProductResource {
         return ResponseEntity.ok(result);
     }
 
-    private String saveFile(String dir, MultipartFile file) throws IOException {
-        String filePath = dir + file.getOriginalFilename();
-        Files.copy(file.getInputStream(), Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
-        return filePath;
+    public String saveFile(String uploadDir, MultipartFile file, String customName) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String fileName = uploadDir + customName + extension;
+        File saveFile = new File(fileName);
+        file.transferTo(saveFile);
+        return fileName;
     }
 
     @GetMapping("/get-image")
