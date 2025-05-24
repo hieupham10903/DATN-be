@@ -15,6 +15,9 @@ public class Warehouses {
     @Column(name = "location")
     private String location;
 
+    @Column(name = "code")
+    private String code;
+
     public String getId() {
         return this.id;
     }
@@ -37,5 +40,13 @@ public class Warehouses {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

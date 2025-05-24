@@ -30,8 +30,8 @@ public class Products {
     @Column(name = "category_id")
     private String categoryId;
 
-    @Column(name = "shelf_id")
-    private String shelfId;
+    @Column(name = "warehouse_id")
+    private String warehouseId;
 
     @Column(name = "image_url")
     private String imageUrl;
@@ -90,14 +90,6 @@ public class Products {
         this.categoryId = categoryId;
     }
 
-    public String getShelfId() {
-        return this.shelfId;
-    }
-
-    public void setShelfId(String shelfId) {
-        this.shelfId = shelfId;
-    }
-
     public String getImageUrl() {
         return this.imageUrl;
     }
@@ -128,5 +120,13 @@ public class Products {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(String warehouseId) {
+        this.warehouseId = warehouseId;
     }
 }

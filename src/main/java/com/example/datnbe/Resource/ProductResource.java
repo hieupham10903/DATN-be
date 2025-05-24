@@ -3,6 +3,7 @@ package com.example.datnbe.Resource;
 import com.example.datnbe.Entity.Criteria.ProductCriteria;
 import com.example.datnbe.Entity.DTO.ProductsDTO;
 import com.example.datnbe.Service.ProductService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,8 +20,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +58,35 @@ public class ProductResource {
     public ResponseEntity<ProductsDTO> updateProduct(@RequestBody ProductsDTO dto) {
         return ResponseEntity.ok(productService.updateProduct(dto));
     }
+
+    @PostMapping("/update-product-with-image")
+    public ResponseEntity<ProductsDTO> updateProductWithImage(
+            @RequestParam("product") String productJson,
+            @RequestParam(value = "imageUrl", required = false) MultipartFile imageUrl,
+            @RequestParam(value = "imageDetail", required = false) List<MultipartFile> imageDetailList
+    ) throws IOException {
+
+        ProductsDTO dto = new ObjectMapper().readValue(productJson, ProductsDTO.class);
+
+        String uploadDir = "D:/DATN/Image/";
+        if (imageUrl != null) {
+            String imageUrlPath = saveFile(uploadDir, imageUrl, dto.getCode() + "-M");
+            dto.setImageUrl(imageUrlPath);
+        }
+
+        if (imageDetailList != null && !imageDetailList.isEmpty()) {
+            StringBuilder detailPaths = new StringBuilder();
+            for (int i = 0; i < imageDetailList.size(); i++) {
+                String detailPath = saveFile(uploadDir, imageDetailList.get(i), dto.getCode() + "-" + (i + 1));
+                if (detailPaths.length() > 0) detailPaths.append(",");
+                detailPaths.append(detailPath);
+            }
+            dto.setImageDetail(detailPaths.toString());
+        }
+
+        return ResponseEntity.ok(productService.updateProduct(dto));
+    }
+
 
     @DeleteMapping("/delete-product")
     public ResponseEntity<Void> deleteProduct(@RequestParam String id) {

@@ -15,14 +15,14 @@ public class ProductCriteria implements Serializable, Criteria {
     private StringFilter code;
     private BigDecimalFilter price;
     private StringFilter categoryId;
-    private StringFilter shelfId;
+    private StringFilter warehouseId;
 
     public ProductCriteria(ProductCriteria other) {
         this.name = other.name == null ? null : other.name.copy();
         this.code = other.code == null ? null : other.code.copy();
         this.price = other.price == null ? null : other.price.copy();
         this.categoryId = other.categoryId == null ? null : other.categoryId.copy();
-        this.shelfId = other.shelfId == null ? null : other.shelfId.copy();
+        this.warehouseId = other.warehouseId == null ? null : other.warehouseId.copy();
     }
 
     @Override

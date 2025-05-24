@@ -49,8 +49,8 @@ public class ProductService extends ArcQueryService<Products> {
             if (criteria.getCategoryId() != null && !"undefined".equals(criteria.getCategoryId().getEquals())) {
                 specification = specification.and(buildStringSpecification(criteria.getCategoryId(), Products_.categoryId));
             }
-            if (criteria.getShelfId() != null && !"undefined".equals(criteria.getShelfId().getEquals())) {
-                specification = specification.and(buildStringSpecification(criteria.getShelfId(), Products_.shelfId));
+            if (criteria.getWarehouseId() != null && !"undefined".equals(criteria.getWarehouseId().getEquals())) {
+                specification = specification.and(buildStringSpecification(criteria.getWarehouseId(), Products_.warehouseId));
             }
         }
         return specification;
@@ -91,7 +91,7 @@ public class ProductService extends ArcQueryService<Products> {
         existingProduct.setPrice(dto.getPrice());
         existingProduct.setStockQuantity(dto.getStockQuantity());
         existingProduct.setCategoryId(dto.getCategoryId());
-        existingProduct.setShelfId(dto.getShelfId());
+        existingProduct.setWarehouseId(dto.getWarehouseId());
         existingProduct.setImageUrl(dto.getImageUrl());
         existingProduct.setImageDetail(dto.getImageDetail());
 

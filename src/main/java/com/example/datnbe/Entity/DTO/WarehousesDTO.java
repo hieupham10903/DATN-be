@@ -4,6 +4,7 @@ public class WarehousesDTO {
     private String id;
     private String name;
     private String location;
+    private String code;
 
     public String getId() {
         return this.id;
@@ -27,5 +28,13 @@ public class WarehousesDTO {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

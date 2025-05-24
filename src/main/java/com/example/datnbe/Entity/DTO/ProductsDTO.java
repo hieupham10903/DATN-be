@@ -11,7 +11,7 @@ public class ProductsDTO {
     private BigDecimal price;
     private Integer stockQuantity;
     private String categoryId;
-    private String shelfId;
+    private String warehouseId;
     private String imageUrl;
     private LocalDateTime createdAt;
     private String imageDetail;
@@ -72,14 +72,6 @@ public class ProductsDTO {
         this.categoryId = categoryId;
     }
 
-    public String getShelfId() {
-        return this.shelfId;
-    }
-
-    public void setShelfId(String shelfId) {
-        this.shelfId = shelfId;
-    }
-
     public String getImageUrl() {
         return this.imageUrl;
     }
@@ -102,5 +94,13 @@ public class ProductsDTO {
 
     public void setImageDetail(String imageDetail) {
         this.imageDetail = imageDetail;
+    }
+
+    public String getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(String warehouseId) {
+        this.warehouseId = warehouseId;
     }
 }
