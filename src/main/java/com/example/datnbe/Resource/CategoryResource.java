@@ -49,7 +49,7 @@ public class CategoryResource {
         return ResponseEntity.ok(categoryService.updateCategory(dto));
     }
 
-    @DeleteMapping("/delete-category")
+    @PostMapping("/delete-category")
     public ResponseEntity<Void> deleteCategory(@RequestParam String id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok().build();
