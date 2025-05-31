@@ -69,6 +69,14 @@ public class ProductResource {
         ProductsDTO dto = new ObjectMapper().readValue(productJson, ProductsDTO.class);
 
         String uploadDir = "D:/DATN/Image/";
+
+        if (dto.getDeletedImages() != null) {
+            for (String fileName : dto.getDeletedImages()) {
+                File fileToDelete = new File(uploadDir + fileName);
+                if (fileToDelete.exists()) fileToDelete.delete();
+            }
+        }
+
         if (imageUrl != null) {
             String imageUrlPath = saveFile(uploadDir, imageUrl, dto.getCode() + "-M");
             dto.setImageUrl(imageUrlPath);
@@ -86,6 +94,7 @@ public class ProductResource {
 
         return ResponseEntity.ok(productService.updateProduct(dto));
     }
+
 
 
     @DeleteMapping("/delete-product")

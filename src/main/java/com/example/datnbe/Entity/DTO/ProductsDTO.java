@@ -2,6 +2,7 @@ package com.example.datnbe.Entity.DTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ProductsDTO {
     private String id;
@@ -10,11 +11,21 @@ public class ProductsDTO {
     private String description;
     private BigDecimal price;
     private Integer stockQuantity;
+
+    public List<String> getDeletedImages() {
+        return deletedImages;
+    }
+
+    public void setDeletedImages(List<String> deletedImages) {
+        this.deletedImages = deletedImages;
+    }
+
     private String categoryId;
     private String warehouseId;
     private String imageUrl;
     private LocalDateTime createdAt;
     private String imageDetail;
+    private List<String> deletedImages;
 
     public String getId() {
         return this.id;
