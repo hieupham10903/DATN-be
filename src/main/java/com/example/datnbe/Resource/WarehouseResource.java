@@ -49,7 +49,7 @@ public class WarehouseResource {
         return ResponseEntity.ok(warehouseService.updateWarehouse(dto));
     }
 
-    @DeleteMapping("/delete-warehouse")
+    @PostMapping("/delete-warehouse")
     public ResponseEntity<Void> deleteWarehouse(@RequestParam String id) {
         warehouseService.deleteWarehouse(id);
         return ResponseEntity.ok().build();
