@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: datn-backend
+    env: java
+    buildCommand: ./mvnw package
+    startCommand: java -jar build/libs/*.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 17
+      - key: SERVER_PORT
+        value: 10000
+    plan: free
