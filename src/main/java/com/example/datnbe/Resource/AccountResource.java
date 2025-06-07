@@ -1,5 +1,6 @@
 package com.example.datnbe.Resource;
 
+import com.example.datnbe.Entity.DTO.EmployeeDTO;
 import com.example.datnbe.Entity.Request.AccountRequest;
 import com.example.datnbe.Service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,5 +47,12 @@ public class AccountResource {
         } else {
             return ResponseEntity.badRequest().body(Map.of("message", "Tài khoản đã tồn tại!"));
         }
+    }
+
+    @PostMapping("/user-info")
+    public ResponseEntity<?> userInfo(@RequestBody AccountRequest accountRequest) {
+        EmployeeDTO employeeDTO = accountService.getUserInfo(accountRequest.getUsername());
+
+        return ResponseEntity.ok(employeeDTO);
     }
 }

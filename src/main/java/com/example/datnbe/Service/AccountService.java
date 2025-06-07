@@ -2,9 +2,13 @@ package com.example.datnbe.Service;
 
 import com.example.datnbe.Entity.Account;
 import com.example.datnbe.Entity.DTO.AccountDTO;
+import com.example.datnbe.Entity.DTO.EmployeeDTO;
+import com.example.datnbe.Entity.Employee;
 import com.example.datnbe.Entity.Request.AccountRequest;
 import com.example.datnbe.Mapper.AccountMapper;
+import com.example.datnbe.Mapper.EmployeeMapper;
 import com.example.datnbe.Repository.AccountRepository;
+import com.example.datnbe.Repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,15 @@ public class AccountService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private EmployeeService employeeService;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private EmployeeMapper employeeMapper;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -59,6 +72,18 @@ public class AccountService {
 
         accountRepository.save(newAccount);
         return true;
+    }
+
+    public EmployeeDTO getUserInfo (String username) {
+        Account account = accountRepository.findByUsernameAndType(username, "GUEST")
+                .orElseThrow(() -> new RuntimeException());
+
+        Employee employee = employeeRepository.findById(account.getIdEmployee())
+                .orElseThrow(() -> new RuntimeException());
+
+        EmployeeDTO employeeDTO = employeeMapper.toDto(employee);
+
+        return employeeDTO;
     }
 
 }
