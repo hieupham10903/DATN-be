@@ -38,10 +38,15 @@ public class AccountService {
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public boolean authenticateAccountAdmin(String username, String password) {
-        Optional<Account> account = accountRepository.findByUsernameAndType(username, "EMPLOYEE");
+        Optional<Account> account = accountRepository.findByUsername(username);
 
         if (account.isPresent()) {
-            return passwordEncoder.matches(password, account.get().getPassword());
+            Account acc = account.get();
+
+            if (("EMPLOYEE".equals(acc.getType()) || "ADMIN".equals(acc.getType()))
+                    && passwordEncoder.matches(password, acc.getPassword())) {
+                return true;
+            }
         }
 
         return false;
@@ -75,11 +80,11 @@ public class AccountService {
     }
 
     public EmployeeDTO getUserInfo (String username) {
-        Account account = accountRepository.findByUsernameAndType(username, "GUEST")
-                .orElseThrow(() -> new RuntimeException());
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
 
         Employee employee = employeeRepository.findById(account.getIdEmployee())
-                .orElseThrow(() -> new RuntimeException());
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
         EmployeeDTO employeeDTO = employeeMapper.toDto(employee);
 

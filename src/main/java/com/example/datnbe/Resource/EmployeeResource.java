@@ -47,4 +47,10 @@ public class EmployeeResource {
     public ResponseEntity<EmployeeDTO> updateEmployee (@RequestBody EmployeeDTO dto) {
         return ResponseEntity.ok(employeeService.updateEmployee(dto));
     }
+
+    @PostMapping("/delete-employee")
+    public ResponseEntity<Void> updateEmployee (@RequestParam String id) {
+        employeeService.deleteEmployee(id);
+        return ResponseEntity.ok().body(null);
+    }
 }
