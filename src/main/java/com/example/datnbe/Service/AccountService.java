@@ -67,6 +67,14 @@ public class AccountService {
             return false;
         }
 
+        Employee newUser = new Employee();
+        newUser.setId(UUID.randomUUID().toString());
+        newUser.setName(username);
+        newUser.setCode("GUEST-" + UUID.randomUUID().toString());
+        newUser.setRole("GUEST");
+
+        employeeRepository.save(newUser);
+
         String encodedPassword = passwordEncoder.encode(password);
 
         Account newAccount = new Account();
@@ -74,6 +82,7 @@ public class AccountService {
         newAccount.setUsername(username);
         newAccount.setPassword(encodedPassword);
         newAccount.setType("GUEST");
+        newAccount.setIdEmployee(newUser.getId());
 
         accountRepository.save(newAccount);
         return true;
@@ -87,6 +96,7 @@ public class AccountService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
         EmployeeDTO employeeDTO = employeeMapper.toDto(employee);
+        employeeDTO.setUsername(account.getUsername());
 
         return employeeDTO;
     }

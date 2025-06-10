@@ -125,6 +125,7 @@ public class EmployeeService extends ArcQueryService<Employee> {
         employee.setGender(dto.getGender());
         employee.setRole(dto.getRole());
         employee.setCode(dto.getCode());
+        employee.setEmail(dto.getEmail());
         EmployeeDTO employeeDTO = employeeMapper.toDto(employeeRepository.save(employee));
 
         Optional<Account> accountOpt = accountRepository.findByIdEmployee(dto.getId());
