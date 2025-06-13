@@ -140,7 +140,6 @@ public class EmployeeService extends ArcQueryService<Employee> {
             throw new RuntimeException("Tên đăng nhập đã tồn tại");
         }
 
-        account.setUsername(dto.getUsername());
         account.setType(dto.getRole());
         AccountDTO accountDTO = accountMapper.toDto(accountRepository.save(account));
 

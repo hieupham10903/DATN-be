@@ -1,6 +1,7 @@
 package com.example.datnbe.Resource;
 
 import com.example.datnbe.Entity.Criteria.ProductCriteria;
+import com.example.datnbe.Entity.DTO.ProductCategoryStatisticDTO;
 import com.example.datnbe.Entity.DTO.ProductsDTO;
 import com.example.datnbe.Service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,8 +96,6 @@ public class ProductResource {
         return ResponseEntity.ok(productService.updateProduct(dto));
     }
 
-
-
     @DeleteMapping("/delete-product")
     public ResponseEntity<Void> deleteProduct(@RequestParam String id) {
         productService.deleteProduct(id);
@@ -158,4 +157,10 @@ public class ProductResource {
                 .header(HttpHeaders.CONTENT_TYPE, contentType)
                 .body(imageBytes);
     }
+
+    @GetMapping("/statistic-by-category")
+    public ResponseEntity<List<ProductCategoryStatisticDTO>> getStatisticByCategory() {
+        return ResponseEntity.ok(productService.getProductStatisticWithCategoryName());
+    }
+
 }

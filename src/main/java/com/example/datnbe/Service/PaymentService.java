@@ -1,23 +1,31 @@
 package com.example.datnbe.Service;
 
-
+import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
+import com.example.datnbe.Repository.PaymentRepository;
 import com.example.datnbe.config.VnPayProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class VnpayService {
+public class PaymentService {
     private final VnPayProperties vnpayProps;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     public String generatePaymentUrl() {
         String vnp_TxnRef = "2134123";
@@ -106,5 +114,13 @@ public class VnpayService {
             log.error("Failed to calculate HMAC SHA512 for data: {}", data, e);
             throw new RuntimeException("Failed to calculate HMAC SHA512", e);
         }
+    }
+
+    public List<PaymentStatisticByMonthDTO> getStatisticByMonth(LocalDate start, LocalDate end) {
+        List<Object[]> rawData = paymentRepository.getStatisticByMonthNative(start, end);
+
+        return rawData.stream()
+                .map(row -> new PaymentStatisticByMonthDTO((String) row[0], (BigDecimal) row[1]))
+                .collect(Collectors.toList());
     }
 }

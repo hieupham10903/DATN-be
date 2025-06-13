@@ -1,6 +1,7 @@
 package com.example.datnbe.Service;
 
 import com.example.datnbe.Entity.Criteria.ProductCriteria;
+import com.example.datnbe.Entity.DTO.ProductCategoryStatisticDTO;
 import com.example.datnbe.Entity.DTO.ProductsDTO;
 import com.example.datnbe.Entity.Products;
 import com.example.datnbe.Entity.Products_;
@@ -104,4 +105,9 @@ public class ProductService extends ArcQueryService<Products> {
         }
         productRepository.deleteById(id);
     }
+
+    public List<ProductCategoryStatisticDTO> getProductStatisticWithCategoryName() {
+        return productRepository.getProductStatisticByCategoryWithName();
+    }
+
 }

@@ -4,11 +4,13 @@ import com.example.datnbe.Entity.Account;
 import com.example.datnbe.Entity.DTO.AccountDTO;
 import com.example.datnbe.Entity.DTO.EmployeeDTO;
 import com.example.datnbe.Entity.Employee;
+import com.example.datnbe.Entity.Orders;
 import com.example.datnbe.Entity.Request.AccountRequest;
 import com.example.datnbe.Mapper.AccountMapper;
 import com.example.datnbe.Mapper.EmployeeMapper;
 import com.example.datnbe.Repository.AccountRepository;
 import com.example.datnbe.Repository.EmployeeRepository;
+import com.example.datnbe.Repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,9 @@ public class AccountService {
 
     @Autowired
     private EmployeeMapper employeeMapper;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -85,6 +90,14 @@ public class AccountService {
         newAccount.setIdEmployee(newUser.getId());
 
         accountRepository.save(newAccount);
+
+        Orders orders = new Orders();
+        orders.setId(UUID.randomUUID().toString());
+        orders.setUserId(newUser.getId());
+        orders.setOrderDate(null);
+        orders.setStatus("pending");
+
+        orderRepository.save(orders);
         return true;
     }
 
@@ -95,8 +108,12 @@ public class AccountService {
         Employee employee = employeeRepository.findById(account.getIdEmployee())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
+        Orders orders = orderRepository.findByUserId(account.getIdEmployee())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng"));
+
         EmployeeDTO employeeDTO = employeeMapper.toDto(employee);
         employeeDTO.setUsername(account.getUsername());
+        employeeDTO.setOrderId(orders.getId());
 
         return employeeDTO;
     }

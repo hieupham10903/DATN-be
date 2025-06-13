@@ -1,28 +1,29 @@
 package com.example.datnbe.Resource;
 
 
-import com.example.datnbe.Service.VnpayService;
+import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
+import com.example.datnbe.Service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/payment")
 @RequiredArgsConstructor
 public class PaymentCallbackResource {
-    private final VnpayService vnpayService;
+    private final PaymentService paymentService;
 
     @PostMapping
     public String create(){
-       return vnpayService.generatePaymentUrl();
+       return paymentService.generatePaymentUrl();
     }
     @GetMapping("/vnpay/callback")
     public ResponseEntity<?> vnPayCallback(HttpServletRequest request) {
-        if (!vnpayService.validateSignature(request)) {
+        if (!paymentService.validateSignature(request)) {
             // Redirect về FE với lỗi
             return ResponseEntity.status(302)
                     .header("Location", "https://your-frontend.com/payment-return?success=false&message=Invalid signature")
@@ -39,6 +40,15 @@ public class PaymentCallbackResource {
         }
 
         return   ResponseEntity.ok(message);
+    }
+
+    @GetMapping("/payment-statistic-by-month")
+    public ResponseEntity<List<PaymentStatisticByMonthDTO>> getStatisticByMonth(
+            @RequestParam("startDate") LocalDate startDate,
+            @RequestParam("endDate") LocalDate endDate
+    ) {
+        List<PaymentStatisticByMonthDTO> result = paymentService.getStatisticByMonth(startDate, endDate);
+        return ResponseEntity.ok(result);
     }
 
 }

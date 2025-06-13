@@ -1,5 +1,6 @@
 package com.example.datnbe.Service;
 
+import com.example.datnbe.Entity.DTO.OrderItemsDTO;
 import com.example.datnbe.Entity.DTO.OrderItemsResponse;
 import com.example.datnbe.Entity.OrderItems;
 import com.example.datnbe.Entity.Orders;
@@ -63,17 +64,72 @@ public class OrderService {
         }).collect(Collectors.toList());
     }
 
-    public void updateQuantity(UpdateQuantityRequest updateQuantityRequest) {
-        OrderItems orderItems = orderItemsRepository.findById(updateQuantityRequest.getId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng của người dùng."));
+    public void updateQuantity(UpdateQuantityRequest request) {
+        OrderItems orderItem = orderItemsRepository.findById(request.getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng."));
 
-        Products product = productRepository.findById(orderItems.getProductId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+        Products product = productRepository.findById(orderItem.getProductId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm."));
 
-        if (product.getStockQuantity() < updateQuantityRequest.getQuantity()) {
-            throw new RuntimeException("Quá số lượng còn lại trong kho");
+        int oldQuantity = orderItem.getQuantity();
+        int newQuantity = request.getQuantity();
+        int difference = newQuantity - oldQuantity;
+
+        if (difference > 0 && product.getStockQuantity() < difference) {
+            throw new RuntimeException("Không đủ hàng trong kho để cập nhật số lượng.");
         }
 
-        orderItems.setQuantity(updateQuantityRequest.getQuantity());
+        product.setStockQuantity(product.getStockQuantity() - difference);
+        productRepository.save(product);
+
+        orderItem.setQuantity(newQuantity);
+        orderItemsRepository.save(orderItem);
+    }
+
+    public OrderItemsDTO addProductToShoppingCard(UpdateQuantityRequest request) {
+        Products product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        if (product.getStockQuantity() < request.getQuantity()) {
+            throw new RuntimeException("Số lượng muốn thêm vượt quá tồn kho");
+        }
+
+        OrderItems existingItem = orderItemsRepository.findByOrderIdAndProductId(request.getOrderId(), request.getProductId())
+                .orElse(null);
+
+        if (existingItem != null) {
+            existingItem.setQuantity(existingItem.getQuantity() + request.getQuantity());
+            orderItemsRepository.save(existingItem);
+        } else {
+            OrderItems newItem = new OrderItems();
+            newItem.setId(java.util.UUID.randomUUID().toString());
+            newItem.setOrderId(request.getOrderId());
+            newItem.setProductId(request.getProductId());
+            newItem.setQuantity(request.getQuantity());
+            newItem.setPrice(product.getPrice());
+            orderItemsRepository.save(newItem);
+        }
+
+        product.setStockQuantity(product.getStockQuantity() - request.getQuantity());
+        productRepository.save(product);
+
+        OrderItems resultItem = orderItemsRepository.findByOrderIdAndProductId(request.getOrderId(), request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Không thể tìm thấy đơn hàng sau khi thêm"));
+
+        return orderItemsMapper.toDto(resultItem);
+    }
+
+    public void removeOrderItem(String orderItemId) {
+        OrderItems orderItem = orderItemsRepository.findById(orderItemId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy mục trong giỏ hàng."));
+
+        Products product = productRepository.findById(orderItem.getProductId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm."));
+
+        int restoredQuantity = orderItem.getQuantity();
+        product.setStockQuantity(product.getStockQuantity() + restoredQuantity);
+        productRepository.save(product);
+
+        orderItemsRepository.delete(orderItem);
     }
 }

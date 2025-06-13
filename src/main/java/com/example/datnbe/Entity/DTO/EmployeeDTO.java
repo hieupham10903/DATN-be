@@ -20,4 +20,6 @@ public class EmployeeDTO {
 
     private String username;
     private String password;
+
+    private String orderId;
 }

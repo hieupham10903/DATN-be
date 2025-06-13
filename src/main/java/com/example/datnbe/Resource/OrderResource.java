@@ -1,5 +1,6 @@
 package com.example.datnbe.Resource;
 
+import com.example.datnbe.Entity.DTO.OrderItemsDTO;
 import com.example.datnbe.Entity.DTO.OrderItemsResponse;
 import com.example.datnbe.Entity.Request.UpdateQuantityRequest;
 import com.example.datnbe.Service.OrderService;
@@ -27,4 +28,17 @@ public class OrderResource {
         orderService.updateQuantity(updateQuantityRequest);
         return ResponseEntity.ok().body(null);
     }
+
+    @PostMapping("/add-product-to-shopping-cart")
+    public ResponseEntity<OrderItemsDTO> addProductToShoppingCard(@RequestBody UpdateQuantityRequest updateQuantityRequest) {
+        OrderItemsDTO orderItemsDTO = orderService.addProductToShoppingCard(updateQuantityRequest);
+        return ResponseEntity.ok().body(orderItemsDTO);
+    }
+
+    @PostMapping("/delete-order-item/{id}")
+    public ResponseEntity<?> deleteOrderItem(@PathVariable String id) {
+        orderService.removeOrderItem(id);
+        return ResponseEntity.ok().build();
+    }
+
 }
