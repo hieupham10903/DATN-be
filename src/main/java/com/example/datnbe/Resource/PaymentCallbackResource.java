@@ -98,7 +98,6 @@ public class PaymentCallbackResource {
         }
     }
 
-
     @GetMapping("/payment-statistic-by-month")
     public ResponseEntity<List<PaymentStatisticByMonthDTO>> getStatisticByMonth(
             @RequestParam("startDate") LocalDate startDate,
@@ -106,6 +105,12 @@ public class PaymentCallbackResource {
     ) {
         List<PaymentStatisticByMonthDTO> result = paymentService.getStatisticByMonth(startDate, endDate);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/payment-sucess/{orderId}")
+    public ResponseEntity<Void> paymentSuccess(@PathVariable String orderId) {
+        paymentService.paymentSuccess(orderId);
+        return ResponseEntity.ok(null);
     }
 
 }

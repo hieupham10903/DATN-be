@@ -2,8 +2,10 @@ package com.example.datnbe.Service;
 
 import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
 import com.example.datnbe.Entity.DTO.PaymentsRequestDTO;
+import com.example.datnbe.Entity.OrderItems;
 import com.example.datnbe.Entity.Orders;
 import com.example.datnbe.Entity.Payments;
+import com.example.datnbe.Repository.OrderItemsRepository;
 import com.example.datnbe.Repository.OrderRepository;
 import com.example.datnbe.Repository.PaymentRepository;
 import com.example.datnbe.config.VnPayProperties;
@@ -35,6 +37,9 @@ public class PaymentService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private OrderItemsRepository orderItemsRepository;
+
     public String generatePaymentUrl(PaymentsRequestDTO dto) {
         Optional<Orders> optionalOrder = orderRepository.findById(dto.getOrderId());
         if (optionalOrder.isEmpty()) {
@@ -44,7 +49,7 @@ public class PaymentService {
         optionalOrder.get().setAddress(dto.getAddress());
         orderRepository.save(optionalOrder.get());
 
-        Optional<Payments> paymentsOptional = paymentRepository.findByOrderId(dto.getOrderId());
+        Optional<Payments> paymentsOptional = paymentRepository.findLatestByOrderIdAndStatus(dto.getOrderId(), "pending");
         if (paymentsOptional.isEmpty()) {
             Payments payments = new Payments();
             payments.setId(UUID.randomUUID().toString());
@@ -150,6 +155,22 @@ public class PaymentService {
             log.error("Failed to calculate HMAC SHA512 for data: {}", data, e);
             throw new RuntimeException("Failed to calculate HMAC SHA512", e);
         }
+    }
+
+    public void paymentSuccess(String orderId) {
+        Optional<Orders> optionalOrder = orderRepository.findById(orderId);
+        if (optionalOrder.isEmpty()) {
+            throw new ServiceException("Không tìm thấy đơn hàng.");
+        }
+        optionalOrder.get().setTotalAmount(BigDecimal.valueOf(0));
+        orderRepository.save(optionalOrder.get());
+
+        Optional<Payments> paymentsOptional = paymentRepository.findLatestByOrderIdAndStatus(orderId, "pending");
+        paymentsOptional.get().setStatus("paid");
+        paymentRepository.save(paymentsOptional.get());
+
+        List<OrderItems> orderItemsList = orderItemsRepository.findAllByOrderId(orderId);
+        orderItemsRepository.deleteAll(orderItemsList);
     }
 
     public List<PaymentStatisticByMonthDTO> getStatisticByMonth(LocalDate start, LocalDate end) {

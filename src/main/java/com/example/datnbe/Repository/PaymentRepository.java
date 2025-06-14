@@ -25,5 +25,13 @@ public interface PaymentRepository extends JpaRepository<Payments, String> {
             @Param("endDate") LocalDate endDate
     );
 
-    Optional<Payments> findByOrderId(String orderId);
+    @Query(value = """
+            SELECT * FROM payments 
+            WHERE order_id = :orderId 
+              AND (:status IS NULL OR status = :status)
+            ORDER BY payment_date DESC 
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<Payments> findLatestByOrderIdAndStatus(String orderId, String status);
+
 }

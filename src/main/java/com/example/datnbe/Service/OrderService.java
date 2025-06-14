@@ -5,12 +5,14 @@ import com.example.datnbe.Entity.DTO.OrderItemsResponse;
 import com.example.datnbe.Entity.DTO.OrdersDTO;
 import com.example.datnbe.Entity.OrderItems;
 import com.example.datnbe.Entity.Orders;
+import com.example.datnbe.Entity.Payments;
 import com.example.datnbe.Entity.Products;
 import com.example.datnbe.Entity.Request.UpdateQuantityRequest;
 import com.example.datnbe.Mapper.OrderItemsMapper;
 import com.example.datnbe.Mapper.OrderMapper;
 import com.example.datnbe.Repository.OrderItemsRepository;
 import com.example.datnbe.Repository.OrderRepository;
+import com.example.datnbe.Repository.PaymentRepository;
 import com.example.datnbe.Repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -39,6 +42,8 @@ public class OrderService {
 
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     public List<OrderItemsResponse> getListOrder(String userId) {
         Orders orders = orderRepository.findByUserId(userId)
@@ -160,6 +165,20 @@ public class OrderService {
     public OrdersDTO getDetailOrder(String orderId) {
         Orders orders = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng của người dùng."));
-        return orderMapper.toDto(orders);
+
+        Payments payments = paymentRepository.findLatestByOrderIdAndStatus(orderId, null)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn thanh toán của người dùng."));
+
+        OrdersDTO dto = orderMapper.toDto(orders);
+
+        dto.setPaymentId(payments.getId());
+        dto.setPaymentDate(payments.getPaymentDate());
+        if (orders.getTotalAmount().compareTo(BigDecimal.ZERO) == 0) {
+            dto.setTotalAmount(payments.getAmount());
+        } else {
+            dto.setTotalAmount(orders.getTotalAmount());
+        }
+
+        return dto;
     }
 }
