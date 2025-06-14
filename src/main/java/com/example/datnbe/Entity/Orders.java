@@ -24,6 +24,9 @@ public class Orders {
     @Column(name = "total_amount")
     private BigDecimal totalAmount;
 
+    @Column(name = "address")
+    private String address;
+
     public String getId() {
         return this.id;
     }
@@ -62,5 +65,13 @@ public class Orders {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

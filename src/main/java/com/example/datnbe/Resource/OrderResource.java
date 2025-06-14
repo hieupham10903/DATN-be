@@ -2,6 +2,7 @@ package com.example.datnbe.Resource;
 
 import com.example.datnbe.Entity.DTO.OrderItemsDTO;
 import com.example.datnbe.Entity.DTO.OrderItemsResponse;
+import com.example.datnbe.Entity.DTO.OrdersDTO;
 import com.example.datnbe.Entity.Request.UpdateQuantityRequest;
 import com.example.datnbe.Service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,12 @@ public class OrderResource {
     public ResponseEntity<?> deleteOrderItem(@PathVariable String id) {
         orderService.removeOrderItem(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/get-detail-order/{id}")
+    public ResponseEntity<OrdersDTO> getDetailOrder(@PathVariable String id) {
+        OrdersDTO dto = orderService.getDetailOrder(id);
+        return ResponseEntity.ok().body(dto);
     }
 
 }

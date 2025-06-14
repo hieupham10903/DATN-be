@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payments, String> {
@@ -23,4 +24,6 @@ public interface PaymentRepository extends JpaRepository<Payments, String> {
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    Optional<Payments> findByOrderId(String orderId);
 }

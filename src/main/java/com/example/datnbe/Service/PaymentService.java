@@ -1,11 +1,16 @@
 package com.example.datnbe.Service;
 
 import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
+import com.example.datnbe.Entity.DTO.PaymentsRequestDTO;
+import com.example.datnbe.Entity.Orders;
+import com.example.datnbe.Entity.Payments;
+import com.example.datnbe.Repository.OrderRepository;
 import com.example.datnbe.Repository.PaymentRepository;
 import com.example.datnbe.config.VnPayProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,10 +32,40 @@ public class PaymentService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    public String generatePaymentUrl() {
-        String vnp_TxnRef = "2134123";
-        String vnp_OrderInfo = "Thanh toan ve tau " ;
-        String vnp_Amount = String.valueOf((long) (100000000 * 100));
+    @Autowired
+    private OrderRepository orderRepository;
+
+    public String generatePaymentUrl(PaymentsRequestDTO dto) {
+        Optional<Orders> optionalOrder = orderRepository.findById(dto.getOrderId());
+        if (optionalOrder.isEmpty()) {
+            throw new ServiceException("Không tìm thấy đơn hàng.");
+        }
+
+        optionalOrder.get().setAddress(dto.getAddress());
+        orderRepository.save(optionalOrder.get());
+
+        Optional<Payments> paymentsOptional = paymentRepository.findByOrderId(dto.getOrderId());
+        if (paymentsOptional.isEmpty()) {
+            Payments payments = new Payments();
+            payments.setId(UUID.randomUUID().toString());
+            payments.setOrderId(dto.getOrderId());
+            payments.setPaymentDate(LocalDateTime.now());
+            payments.setAmount(optionalOrder.get().getTotalAmount());
+            payments.setMethod("bank_transfer");
+            payments.setStatus("pending");
+
+            paymentRepository.save(payments);
+        } else {
+            paymentsOptional.get().setPaymentDate(LocalDateTime.now());
+            paymentsOptional.get().setAmount(optionalOrder.get().getTotalAmount());
+
+            paymentRepository.save(paymentsOptional.get());
+        }
+
+        Orders order = optionalOrder.get();
+        String vnp_TxnRef = UUID.randomUUID().toString();
+        String vnp_OrderInfo = "Thanh toán đơn hàng " + dto.getOrderId();
+        String vnp_Amount = String.valueOf(order.getTotalAmount().longValue() * 100);
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", "2.1.0");
@@ -48,6 +83,7 @@ public class PaymentService {
 
         return buildSecureUrl(vnp_Params);
     }
+
 
     public boolean validateSignature(HttpServletRequest request) {
         Map<String, String> fields = new HashMap<>();

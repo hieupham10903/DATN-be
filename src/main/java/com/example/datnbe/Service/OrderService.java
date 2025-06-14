@@ -2,6 +2,7 @@ package com.example.datnbe.Service;
 
 import com.example.datnbe.Entity.DTO.OrderItemsDTO;
 import com.example.datnbe.Entity.DTO.OrderItemsResponse;
+import com.example.datnbe.Entity.DTO.OrdersDTO;
 import com.example.datnbe.Entity.OrderItems;
 import com.example.datnbe.Entity.Orders;
 import com.example.datnbe.Entity.Products;
@@ -15,12 +16,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class OrderService {
+
     @Autowired
     private OrderRepository orderRepository;
 
@@ -84,6 +88,8 @@ public class OrderService {
 
         orderItem.setQuantity(newQuantity);
         orderItemsRepository.save(orderItem);
+
+        updateOrderTotalAmount(orderItem.getOrderId());
     }
 
     public OrderItemsDTO addProductToShoppingCard(UpdateQuantityRequest request) {
@@ -102,7 +108,7 @@ public class OrderService {
             orderItemsRepository.save(existingItem);
         } else {
             OrderItems newItem = new OrderItems();
-            newItem.setId(java.util.UUID.randomUUID().toString());
+            newItem.setId(UUID.randomUUID().toString());
             newItem.setOrderId(request.getOrderId());
             newItem.setProductId(request.getProductId());
             newItem.setQuantity(request.getQuantity());
@@ -112,6 +118,8 @@ public class OrderService {
 
         product.setStockQuantity(product.getStockQuantity() - request.getQuantity());
         productRepository.save(product);
+
+        updateOrderTotalAmount(request.getOrderId());
 
         OrderItems resultItem = orderItemsRepository.findByOrderIdAndProductId(request.getOrderId(), request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Không thể tìm thấy đơn hàng sau khi thêm"));
@@ -130,6 +138,28 @@ public class OrderService {
         product.setStockQuantity(product.getStockQuantity() + restoredQuantity);
         productRepository.save(product);
 
+        String orderId = orderItem.getOrderId();
         orderItemsRepository.delete(orderItem);
+
+        updateOrderTotalAmount(orderId);
+    }
+
+    private void updateOrderTotalAmount(String orderId) {
+        List<OrderItems> items = orderItemsRepository.findAllByOrderId(orderId);
+        BigDecimal totalAmount = items.stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Orders order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng."));
+
+        order.setTotalAmount(totalAmount);
+        orderRepository.save(order);
+    }
+
+    public OrdersDTO getDetailOrder(String orderId) {
+        Orders orders = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng của người dùng."));
+        return orderMapper.toDto(orders);
     }
 }

@@ -9,6 +9,7 @@ public class OrdersDTO {
     private LocalDateTime orderDate;
     private String status;
     private BigDecimal totalAmount;
+    private String address;
 
     public String getId() {
         return this.id;
@@ -48,5 +49,13 @@ public class OrdersDTO {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }
