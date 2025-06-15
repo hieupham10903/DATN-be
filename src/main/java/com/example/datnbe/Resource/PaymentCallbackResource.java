@@ -2,6 +2,7 @@ package com.example.datnbe.Resource;
 
 
 import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
+import com.example.datnbe.Entity.DTO.PaymentsDTO;
 import com.example.datnbe.Entity.DTO.PaymentsRequestDTO;
 import com.example.datnbe.Entity.Orders;
 import com.example.datnbe.Entity.Payments;
@@ -111,6 +112,15 @@ public class PaymentCallbackResource {
     public ResponseEntity<Void> paymentSuccess(@PathVariable String orderId) {
         paymentService.paymentSuccess(orderId);
         return ResponseEntity.ok(null);
+    }
+
+    @GetMapping("/get-all-payment-by-date")
+    public ResponseEntity<List<PaymentsDTO>> getAllByDateBetween(
+            @RequestParam("startDate") LocalDateTime startDate,
+            @RequestParam("endDate") LocalDateTime endDate
+    ) {
+        List<PaymentsDTO> result = paymentService.getAllByDateBetween(startDate, endDate);
+        return ResponseEntity.ok(result);
     }
 
 }

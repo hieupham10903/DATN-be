@@ -1,10 +1,16 @@
 package com.example.datnbe.Service;
 
 import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
+import com.example.datnbe.Entity.DTO.PaymentsDTO;
 import com.example.datnbe.Entity.DTO.PaymentsRequestDTO;
+import com.example.datnbe.Entity.Employee;
 import com.example.datnbe.Entity.OrderItems;
 import com.example.datnbe.Entity.Orders;
 import com.example.datnbe.Entity.Payments;
+import com.example.datnbe.Mapper.EmployeeMapper;
+import com.example.datnbe.Mapper.OrderMapper;
+import com.example.datnbe.Mapper.PaymentMapper;
+import com.example.datnbe.Repository.EmployeeRepository;
 import com.example.datnbe.Repository.OrderItemsRepository;
 import com.example.datnbe.Repository.OrderRepository;
 import com.example.datnbe.Repository.PaymentRepository;
@@ -39,6 +45,14 @@ public class PaymentService {
 
     @Autowired
     private OrderItemsRepository orderItemsRepository;
+    @Autowired
+    private PaymentMapper paymentMapper;
+    @Autowired
+    private OrderMapper orderMapper;
+    @Autowired
+    private EmployeeMapper employeeMapper;
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     public String generatePaymentUrl(PaymentsRequestDTO dto) {
         Optional<Orders> optionalOrder = orderRepository.findById(dto.getOrderId());
@@ -180,4 +194,38 @@ public class PaymentService {
                 .map(row -> new PaymentStatisticByMonthDTO((String) row[0], (BigDecimal) row[1]))
                 .collect(Collectors.toList());
     }
+
+    public List<PaymentsDTO> getAllByDateBetween(LocalDateTime start, LocalDateTime end) {
+        List<Payments> payments = paymentRepository.findAllByDateBetween(start, end);
+
+        List<String> orderIds = payments.stream()
+                .map(Payments::getOrderId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<Orders> orders = orderRepository.findAllById(orderIds);
+
+        List<String> userIds = orders.stream()
+                .map(Orders::getUserId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        List<Employee> users = employeeRepository.findAllById(userIds);
+
+        Map<String, String> orderIdToUserId = orders.stream()
+                .collect(Collectors.toMap(Orders::getId, Orders::getUserId));
+
+        Map<String, String> userIdToName = users.stream()
+                .collect(Collectors.toMap(Employee::getId, Employee::getName));
+
+        List<PaymentsDTO> dtoList = paymentMapper.toDtoList(payments);
+        for (PaymentsDTO dto : dtoList) {
+            String userId = orderIdToUserId.get(dto.getOrderId());
+            dto.setUserName(userIdToName.get(userId));
+        }
+
+        return dtoList;
+    }
+
+
 }

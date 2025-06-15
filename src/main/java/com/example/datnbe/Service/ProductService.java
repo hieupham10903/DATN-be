@@ -1,12 +1,16 @@
 package com.example.datnbe.Service;
 
+import com.example.datnbe.Entity.Categories;
 import com.example.datnbe.Entity.Criteria.ProductCriteria;
 import com.example.datnbe.Entity.DTO.ProductCategoryStatisticDTO;
 import com.example.datnbe.Entity.DTO.ProductsDTO;
 import com.example.datnbe.Entity.Products;
 import com.example.datnbe.Entity.Products_;
+import com.example.datnbe.Entity.Warehouses;
 import com.example.datnbe.Mapper.ProductMapper;
+import com.example.datnbe.Repository.CategoriesRepository;
 import com.example.datnbe.Repository.ProductRepository;
+import com.example.datnbe.Repository.WarehouseRepository;
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,8 +19,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Watchable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,6 +35,10 @@ public class ProductService extends ArcQueryService<Products> {
 
     @Autowired
     private ProductMapper productMapper;
+    @Autowired
+    private CategoriesRepository categoriesRepository;
+    @Autowired
+    private WarehouseRepository warehouseRepository;
 
     public Page<ProductsDTO> findByCriteria(ProductCriteria criteria, Pageable page) {
         final Specification<Products> specification = createSpecification(criteria);
@@ -109,5 +119,27 @@ public class ProductService extends ArcQueryService<Products> {
     public List<ProductCategoryStatisticDTO> getProductStatisticWithCategoryName() {
         return productRepository.getProductStatisticByCategoryWithName();
     }
+
+    public List<ProductsDTO> getAllProductInfo() {
+        List<Products> products = productRepository.findAll();
+        List<Categories> categories = categoriesRepository.findAll();
+        List<Warehouses> warehouses = warehouseRepository.findAll();
+
+        Map<String, String> categoryMap = categories.stream()
+                .collect(Collectors.toMap(Categories::getId, Categories::getName));
+
+        Map<String, String> warehouseMap = warehouses.stream()
+                .collect(Collectors.toMap(Warehouses::getId, Warehouses::getName));
+
+        List<ProductsDTO> list = productMapper.toDtoList(products);
+
+        for (ProductsDTO dto : list) {
+            dto.setCategoryName(categoryMap.get(dto.getCategoryId()));
+            dto.setWarehouseName(warehouseMap.get(dto.getWarehouseId()));
+        }
+
+        return list;
+    }
+
 
 }

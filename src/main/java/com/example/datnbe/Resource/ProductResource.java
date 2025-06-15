@@ -163,4 +163,9 @@ public class ProductResource {
         return ResponseEntity.ok(productService.getProductStatisticWithCategoryName());
     }
 
+    @GetMapping("/get-all-products-info")
+    public ResponseEntity<List<ProductsDTO>> getAllProductInfo() {
+        return ResponseEntity.ok(productService.getAllProductInfo());
+    }
+
 }

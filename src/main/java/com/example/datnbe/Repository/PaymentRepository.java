@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,5 +34,15 @@ public interface PaymentRepository extends JpaRepository<Payments, String> {
             LIMIT 1
             """, nativeQuery = true)
     Optional<Payments> findLatestByOrderIdAndStatus(String orderId, String status);
+
+    @Query("""
+                SELECT p FROM Payments p
+                WHERE p.paymentDate BETWEEN :startDate AND :endDate
+                ORDER BY p.paymentDate
+            """)
+    List<Payments> findAllByDateBetween(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
 
 }
