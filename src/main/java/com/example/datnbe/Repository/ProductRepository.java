@@ -21,4 +21,6 @@ public interface ProductRepository extends JpaRepository<Products, String>, JpaS
             """)
     List<ProductCategoryStatisticDTO> getProductStatisticByCategoryWithName();
 
+    Products findNameById(String id);
+
 }

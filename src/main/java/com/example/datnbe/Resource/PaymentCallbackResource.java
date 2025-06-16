@@ -9,6 +9,7 @@ import com.example.datnbe.Entity.Payments;
 import com.example.datnbe.Repository.OrderRepository;
 import com.example.datnbe.Repository.PaymentRepository;
 import com.example.datnbe.Service.PaymentService;
+import com.example.datnbe.Service.VNPAYService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -36,67 +35,15 @@ public class PaymentCallbackResource {
     @Autowired
     private OrderRepository orderRepository;
 
-    @PostMapping
-    public String create(@RequestBody PaymentsRequestDTO dto) {
-        return paymentService.generatePaymentUrl(dto);
-    }
+    @Autowired
+    private VNPAYService vnPayService;
 
-    @GetMapping("/vnpay/callback")
-    public ResponseEntity<?> vnPayCallback(HttpServletRequest request) {
-        if (!paymentService.validateSignature(request)) {
-            return ResponseEntity.status(302)
-                    .header("Location", "https://your-frontend.com/payment-return?success=false&message=Invalid signature")
-                    .build();
-        }
-
-        String bookingCode = request.getParameter("vnp_TxnRef");
-        String responseCode = request.getParameter("vnp_ResponseCode");
-        String amountStr = request.getParameter("vnp_Amount");
-
-        Optional<Orders> optionalOrder = orderRepository.findById(bookingCode);
-        if (optionalOrder.isEmpty()) {
-            return ResponseEntity.badRequest().body("Order not found");
-        }
-
-        Orders order = optionalOrder.get();
-
-        Payments payment = new Payments();
-        payment.setId(UUID.randomUUID().toString());
-        payment.setOrderId(order.getId());
-        payment.setPaymentDate(LocalDateTime.now());
-        payment.setAmount(new BigDecimal(amountStr).divide(BigDecimal.valueOf(100)));
-        payment.setMethod("VNPAY");
-
-        String message;
-        if ("00".equals(responseCode)) {
-            payment.setStatus("SUCCESS");
-            message = "success";
-        } else {
-            payment.setStatus("FAILED");
-            message = "false";
-        }
-
-        paymentRepository.save(payment);
-        return ResponseEntity.ok(message);
-    }
-
-    @GetMapping("/return")
-    public void handleVnpayReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        boolean isValid = paymentService.validateSignature(request);
-        String transactionStatus = request.getParameter("vnp_TransactionStatus");
-        String rawOrderInfo = request.getParameter("vnp_OrderInfo");
-        String orderId = rawOrderInfo.replace("Thanh toán đơn hàng ", "");
-
-        if (isValid && "00".equals(transactionStatus)) {
-            // Cập nhật đơn hàng
-            Orders order = orderRepository.findById(orderId).orElseThrow();
-            order.setStatus("PAID");
-            orderRepository.save(order);
-
-            response.sendRedirect("http://localhost:3001/payment-success");
-        } else {
-            response.sendRedirect("http://localhost:3001/payment-fail");
-        }
+    @PostMapping("/submitOrder")
+    public ResponseEntity<String> submidOrder(@RequestBody PaymentsRequestDTO dto,
+                                              HttpServletRequest request){
+        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        String vnpayUrl = vnPayService.createOrder(request, dto, baseUrl);
+        return ResponseEntity.ok(vnpayUrl);
     }
 
     @GetMapping("/payment-statistic-by-month")
@@ -122,5 +69,4 @@ public class PaymentCallbackResource {
         List<PaymentsDTO> result = paymentService.getAllByDateBetween(startDate, endDate);
         return ResponseEntity.ok(result);
     }
-
 }

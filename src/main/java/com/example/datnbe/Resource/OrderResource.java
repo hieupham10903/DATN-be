@@ -48,4 +48,10 @@ public class OrderResource {
         return ResponseEntity.ok().body(dto);
     }
 
+    @GetMapping("/max-order-time-list/{orderId}")
+    public ResponseEntity<List<OrderItemsDTO>> getItemsWithMaxOrderTime(@PathVariable String orderId) {
+        List<OrderItemsDTO> items = orderService.getItemsWithMaxOrderTime(orderId);
+        return ResponseEntity.ok(items);
+    }
+
 }

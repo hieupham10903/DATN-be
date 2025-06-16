@@ -13,7 +13,7 @@ public class VnPayProperties {
     private String tmnCode;
     @Value("${vnpay.hashSecret}")
     private String hashSecret;
-    @Value("${vnpay.payUrl}")
+    @Value("${vnpay.url}")
     private String url;
     @Value("${vnpay.returnUrl}")
     private String returnUrl;

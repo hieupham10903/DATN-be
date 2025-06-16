@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -49,7 +50,7 @@ public class OrderService {
         Orders orders = orderRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng của người dùng."));
 
-        List<OrderItems> orderItemsList = orderItemsRepository.findAllByOrderId(orders.getId());
+        List<OrderItems> orderItemsList = orderItemsRepository.findAllByOrderIdAndOrderTimeNull(orders.getId());
 
         return orderItemsList.stream().map(item -> {
             Products product = productRepository.findById(item.getProductId())
@@ -105,7 +106,7 @@ public class OrderService {
             throw new RuntimeException("Số lượng muốn thêm vượt quá tồn kho");
         }
 
-        OrderItems existingItem = orderItemsRepository.findByOrderIdAndProductId(request.getOrderId(), request.getProductId())
+        OrderItems existingItem = orderItemsRepository.findByOrderIdAndProductIdAndOrderTimeNull(request.getOrderId(), request.getProductId())
                 .orElse(null);
 
         if (existingItem != null) {
@@ -126,7 +127,7 @@ public class OrderService {
 
         updateOrderTotalAmount(request.getOrderId());
 
-        OrderItems resultItem = orderItemsRepository.findByOrderIdAndProductId(request.getOrderId(), request.getProductId())
+        OrderItems resultItem = orderItemsRepository.findByOrderIdAndProductIdAndOrderTimeNull(request.getOrderId(), request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Không thể tìm thấy đơn hàng sau khi thêm"));
 
         return orderItemsMapper.toDto(resultItem);
@@ -150,7 +151,7 @@ public class OrderService {
     }
 
     private void updateOrderTotalAmount(String orderId) {
-        List<OrderItems> items = orderItemsRepository.findAllByOrderId(orderId);
+        List<OrderItems> items = orderItemsRepository.findAllByOrderIdAndOrderTimeNull(orderId);
         BigDecimal totalAmount = items.stream()
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -181,4 +182,27 @@ public class OrderService {
 
         return dto;
     }
+
+    public List<OrderItemsDTO> getItemsWithMaxOrderTime(String orderId) {
+        Integer maxOrderTime = orderItemsRepository.findMaxOrderTimeByOrderId(orderId);
+        if (maxOrderTime == null) return new ArrayList<>();
+
+        List<OrderItems> orderItems = orderItemsRepository.findAllByOrderIdAndOrderTime(orderId, maxOrderTime);
+
+        return orderItems.stream().map(item -> {
+            OrderItemsDTO dto = new OrderItemsDTO();
+            dto.setId(item.getId());
+            dto.setOrderId(item.getOrderId());
+            dto.setProductId(item.getProductId());
+            dto.setQuantity(item.getQuantity());
+            dto.setPrice(item.getPrice());
+            dto.setOrderTime(item.getOrderTime());
+
+            Products product = productRepository.findNameById(item.getProductId());
+            dto.setProductName(product.getName());
+
+            return dto;
+        }).toList();
+    }
+
 }
