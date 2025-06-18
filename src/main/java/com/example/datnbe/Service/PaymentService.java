@@ -125,5 +125,9 @@ public class PaymentService {
         return dtoList;
     }
 
+    public BigDecimal getTotalRevenue() {
+        BigDecimal total = paymentRepository.getTotalRevenue();
+        return total != null ? total : BigDecimal.ZERO;
+    }
 
 }

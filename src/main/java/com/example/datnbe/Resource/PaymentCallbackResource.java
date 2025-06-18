@@ -69,4 +69,10 @@ public class PaymentCallbackResource {
         List<PaymentsDTO> result = paymentService.getAllByDateBetween(startDate, endDate);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/total-revenue")
+    public ResponseEntity<BigDecimal> getTotalRevenue() {
+        BigDecimal totalRevenue = paymentService.getTotalRevenue();
+        return ResponseEntity.ok(totalRevenue);
+    }
 }
