@@ -6,10 +6,12 @@ import com.example.datnbe.Entity.DTO.AccountDTO;
 import com.example.datnbe.Entity.DTO.EmployeeDTO;
 import com.example.datnbe.Entity.Employee;
 import com.example.datnbe.Entity.Employee_;
+import com.example.datnbe.Entity.Orders;
 import com.example.datnbe.Mapper.AccountMapper;
 import com.example.datnbe.Mapper.EmployeeMapper;
 import com.example.datnbe.Repository.AccountRepository;
 import com.example.datnbe.Repository.EmployeeRepository;
+import com.example.datnbe.Repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +39,9 @@ public class EmployeeService extends ArcQueryService<Employee> {
 
     @Autowired
     private AccountMapper accountMapper;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -66,10 +71,23 @@ public class EmployeeService extends ArcQueryService<Employee> {
 
     public List<EmployeeDTO> getAllEmployee() {
         List<Employee> employees = employeeRepository.findAll();
-        return employees.stream()
-                .map(employeeMapper::toDto)
-                .collect(Collectors.toList());
+
+        return employees.stream().map(employee -> {
+            EmployeeDTO dto = employeeMapper.toDto(employee);
+
+            Optional<Account> optionalAccount = accountRepository.findByIdEmployee(employee.getId());
+            if (optionalAccount.isPresent()) {
+                Account account = optionalAccount.get();
+                dto.setUsername(account.getUsername());
+
+                Optional<Orders> optionalOrder = orderRepository.findByUserId(account.getIdEmployee());
+                optionalOrder.ifPresent(order -> dto.setOrderId(order.getId()));
+            }
+
+            return dto;
+        }).collect(Collectors.toList());
     }
+
 
     public EmployeeDTO getEmployeeById(String id) {
         Optional<Employee> employee = employeeRepository.findById(id);

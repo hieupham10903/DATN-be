@@ -1,9 +1,12 @@
 package com.example.datnbe.Resource;
 
 
+import com.example.datnbe.Entity.Criteria.PaymentCriteria;
+import com.example.datnbe.Entity.Criteria.ProductCriteria;
 import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
 import com.example.datnbe.Entity.DTO.PaymentsDTO;
 import com.example.datnbe.Entity.DTO.PaymentsRequestDTO;
+import com.example.datnbe.Entity.DTO.ProductsDTO;
 import com.example.datnbe.Entity.Orders;
 import com.example.datnbe.Entity.Payments;
 import com.example.datnbe.Repository.OrderRepository;
@@ -14,8 +17,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import tech.jhipster.web.util.PaginationUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -74,5 +82,13 @@ public class PaymentCallbackResource {
     public ResponseEntity<BigDecimal> getTotalRevenue() {
         BigDecimal totalRevenue = paymentService.getTotalRevenue();
         return ResponseEntity.ok(totalRevenue);
+    }
+
+    @PostMapping("/search-payment")
+    public ResponseEntity<List<PaymentsDTO>> searchProduct(@RequestBody PaymentCriteria criteria, Pageable pageable) {
+        Page<PaymentsDTO> page = paymentService.findByCriteria(criteria, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(
+                ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 }

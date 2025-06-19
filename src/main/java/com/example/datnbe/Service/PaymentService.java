@@ -1,12 +1,9 @@
 package com.example.datnbe.Service;
 
+import com.example.datnbe.Entity.*;
+import com.example.datnbe.Entity.Criteria.PaymentCriteria;
 import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
 import com.example.datnbe.Entity.DTO.PaymentsDTO;
-import com.example.datnbe.Entity.DTO.PaymentsRequestDTO;
-import com.example.datnbe.Entity.Employee;
-import com.example.datnbe.Entity.OrderItems;
-import com.example.datnbe.Entity.Orders;
-import com.example.datnbe.Entity.Payments;
 import com.example.datnbe.Mapper.EmployeeMapper;
 import com.example.datnbe.Mapper.OrderMapper;
 import com.example.datnbe.Mapper.PaymentMapper;
@@ -15,35 +12,32 @@ import com.example.datnbe.Repository.OrderItemsRepository;
 import com.example.datnbe.Repository.OrderRepository;
 import com.example.datnbe.Repository.PaymentRepository;
 import com.example.datnbe.config.VnPayProperties;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentService {
+public class PaymentService extends ArcQueryService<Payments> {
     private final VnPayProperties vnpayProps;
-
     @Autowired
     private PaymentRepository paymentRepository;
-
     @Autowired
     private OrderRepository orderRepository;
-
     @Autowired
     private OrderItemsRepository orderItemsRepository;
     @Autowired
@@ -130,4 +124,30 @@ public class PaymentService {
         return total != null ? total : BigDecimal.ZERO;
     }
 
+    public Page<PaymentsDTO> findByCriteria(PaymentCriteria criteria, Pageable page) {
+        final Specification<Payments> specification = createSpecification(criteria);
+        return paymentRepository.findAll(specification, page).map(paymentMapper::toDto);
+    }
+
+    protected Specification<Payments> createSpecification(PaymentCriteria criteria) {
+        Specification<Payments> specification = Specification.where(null);
+        if (criteria != null) {
+            if (criteria.getOrderId() != null && !"undefined".equals(criteria.getOrderId().getContains())) {
+                specification = specification.and(buildStringSpecification(criteria.getOrderId(), Payments_.orderId));
+            }
+            if (criteria.getPaymentDate() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getPaymentDate(), Payments_.paymentDate));
+            }
+            if (criteria.getAmount() != null) {
+                specification = specification.and(buildRangeSpecification(criteria.getAmount(), Payments_.amount));
+            }
+            if (criteria.getMethod() != null && !"undefined".equals(criteria.getMethod().getEquals())) {
+                specification = specification.and(buildStringSpecification(criteria.getMethod(), Payments_.method));
+            }
+            if (criteria.getStatus() != null && !"undefined".equals(criteria.getStatus().getEquals())) {
+                specification = specification.and(buildStringSpecification(criteria.getStatus(), Payments_.status));
+            }
+        }
+        return specification;
+    }
 }

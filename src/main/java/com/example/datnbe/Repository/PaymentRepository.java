@@ -1,7 +1,12 @@
 package com.example.datnbe.Repository;
 
 import com.example.datnbe.Entity.Payments;
+import com.example.datnbe.Entity.Products;
+import org.hibernate.Hibernate;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -13,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PaymentRepository extends JpaRepository<Payments, String> {
+public interface PaymentRepository extends JpaRepository<Payments, String>, JpaSpecificationExecutor<Payments> {
 
     @Query(value = """
                 SELECT DATE_FORMAT(p.payment_date, '%Y-%m') AS month, SUM(p.amount) AS total_amount
@@ -48,6 +53,5 @@ public interface PaymentRepository extends JpaRepository<Payments, String> {
 
     @Query("SELECT SUM(p.amount) FROM Payments p WHERE p.status = 'paid'")
     BigDecimal getTotalRevenue();
-
 
 }
