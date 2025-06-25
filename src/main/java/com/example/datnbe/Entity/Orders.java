@@ -22,7 +22,7 @@ public class Orders {
     private String status;
 
     @Column(name = "total_amount")
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmount = BigDecimal.valueOf(0);
 
     @Column(name = "address")
     private String address;

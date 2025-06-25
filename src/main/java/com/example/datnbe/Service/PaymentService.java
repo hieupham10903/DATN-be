@@ -2,16 +2,21 @@ package com.example.datnbe.Service;
 
 import com.example.datnbe.Entity.*;
 import com.example.datnbe.Entity.Criteria.PaymentCriteria;
+import com.example.datnbe.Entity.DTO.OrderItemsDTO;
 import com.example.datnbe.Entity.DTO.PaymentStatisticByMonthDTO;
 import com.example.datnbe.Entity.DTO.PaymentsDTO;
+import com.example.datnbe.Entity.DTO.PaymentsRequestDTO;
 import com.example.datnbe.Mapper.EmployeeMapper;
+import com.example.datnbe.Mapper.OrderItemsMapper;
 import com.example.datnbe.Mapper.OrderMapper;
 import com.example.datnbe.Mapper.PaymentMapper;
 import com.example.datnbe.Repository.EmployeeRepository;
 import com.example.datnbe.Repository.OrderItemsRepository;
 import com.example.datnbe.Repository.OrderRepository;
 import com.example.datnbe.Repository.PaymentRepository;
+import com.example.datnbe.config.VNPAYConfig;
 import com.example.datnbe.config.VnPayProperties;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.service.spi.ServiceException;
@@ -20,18 +25,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class PaymentService extends ArcQueryService<Payments> {
     private final VnPayProperties vnpayProps;
     @Autowired
@@ -48,6 +57,14 @@ public class PaymentService extends ArcQueryService<Payments> {
     private EmployeeMapper employeeMapper;
     @Autowired
     private EmployeeRepository employeeRepository;
+    @Autowired
+    private PaymentsRepository paymentsRepository;
+    @Autowired
+    private OrderItemsMapper orderItemsMapper;
+    @Autowired
+    private ProductsRepository productsRepository;
+    @Autowired
+    private OrdersRepository ordersRepository;
 
     public void paymentSuccess(String orderId) {
         Optional<Orders> optionalOrder = orderRepository.findById(orderId);
@@ -150,4 +167,82 @@ public class PaymentService extends ArcQueryService<Payments> {
         }
         return specification;
     }
+
+    public PaymentsDTO getDetailPayment(String paymentId) throws Exception {
+        Payments payments = paymentsRepository.findById(paymentId)
+                .orElseThrow(() -> new ServiceException("Không tìm thấy đơn hàng"));
+
+        PaymentsDTO dto = paymentMapper.toDto(payments);
+
+        Orders order = ordersRepository.findById(payments.getOrderId())
+                .orElseThrow(() -> new ServiceException("Không tìm thấy đơn hàng tương ứng"));
+
+        employeeRepository.findById(order.getUserId()).ifPresent(user -> dto.setUserName(user.getName()));
+
+        List<OrderItems> orderItems = orderItemsRepository.findAllByOrderIdAndOrderTime(
+                payments.getOrderId(), payments.getOrderTime()
+        );
+
+        List<String> productIds = orderItems.stream()
+                .map(OrderItems::getProductId)
+                .collect(Collectors.toList());
+
+        List<Products> products = productsRepository.findAllById(productIds);
+
+        Map<String, String> productNameMap = products.stream()
+                .collect(Collectors.toMap(Products::getId, Products::getName));
+
+        List<OrderItemsDTO> orderItemsDTOS = orderItems.stream().map(item -> {
+            OrderItemsDTO dtoItem = orderItemsMapper.toDto(item);
+            dtoItem.setProductName(productNameMap.get(item.getProductId()));
+            return dtoItem;
+        }).collect(Collectors.toList());
+
+        dto.setOrderItems(orderItemsDTOS);
+        return dto;
+    }
+
+    public String createOrderOffline(PaymentsRequestDTO dto) {
+        Optional<Orders> optionalOrder = orderRepository.findById(dto.getOrderId());
+        if (optionalOrder.isEmpty()) {
+            throw new ServiceException("Không tìm thấy đơn hàng.");
+        }
+
+        optionalOrder.get().setAddress(dto.getAddress());
+        orderRepository.save(optionalOrder.get());
+
+        List<OrderItems> existingItemsWithOrderTime = orderItemsRepository.findAllByOrderIdAndOrderTimeNotNull(dto.getOrderId());
+        int nextOrderTime = existingItemsWithOrderTime.stream()
+                .mapToInt(OrderItems::getOrderTime)
+                .max()
+                .orElse(0) + 1;
+
+        Optional<Payments> paymentsOptional = paymentRepository.findLatestByOrderIdAndStatus(dto.getOrderId(), "pending");
+        if (paymentsOptional.isEmpty()) {
+            Payments payments = new Payments();
+            payments.setId(UUID.randomUUID().toString());
+            payments.setOrderId(dto.getOrderId());
+            payments.setPaymentDate(LocalDateTime.now());
+            payments.setAmount(optionalOrder.get().getTotalAmount());
+            payments.setMethod("offline");
+            payments.setStatus("pending");
+            payments.setOrderTime(nextOrderTime);
+
+            paymentRepository.save(payments);
+        } else {
+            paymentsOptional.get().setPaymentDate(LocalDateTime.now());
+            paymentsOptional.get().setAmount(optionalOrder.get().getTotalAmount());
+
+            paymentRepository.save(paymentsOptional.get());
+        }
+
+        List<OrderItems> itemsWithoutOrderTime = orderItemsRepository.findAllByOrderIdAndOrderTimeNull(dto.getOrderId());
+        for (OrderItems item : itemsWithoutOrderTime) {
+            item.setOrderTime(nextOrderTime);
+        }
+
+        orderItemsRepository.saveAll(itemsWithoutOrderTime);
+        return "Thành công";
+    }
+
 }

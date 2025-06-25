@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class PaymentsDTO {
@@ -13,6 +14,8 @@ public class PaymentsDTO {
     private BigDecimal amount;
     private String method;
     private String status;
+    private Integer orderTime;
 
     private String userName;
+    private List<OrderItemsDTO> orderItems;
 }

@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -168,16 +167,18 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng của người dùng."));
 
         Payments payments = paymentRepository.findLatestByOrderIdAndStatus(orderId, null)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn thanh toán của người dùng."));
+                .orElse(null);
 
         OrdersDTO dto = orderMapper.toDto(orders);
 
-        dto.setPaymentId(payments.getId());
-        dto.setPaymentDate(payments.getPaymentDate());
-        if (orders.getTotalAmount().compareTo(BigDecimal.ZERO) == 0) {
-            dto.setTotalAmount(payments.getAmount());
-        } else {
-            dto.setTotalAmount(orders.getTotalAmount());
+        if (payments != null) {
+            dto.setPaymentId(payments.getId());
+            dto.setPaymentDate(payments.getPaymentDate());
+            if (orders.getTotalAmount().compareTo(BigDecimal.ZERO) == 0) {
+                dto.setTotalAmount(payments.getAmount());
+            } else {
+                dto.setTotalAmount(orders.getTotalAmount());
+            }
         }
 
         return dto;

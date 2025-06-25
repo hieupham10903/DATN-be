@@ -1,6 +1,7 @@
 package com.example.datnbe.Service;
 
 import com.example.datnbe.Entity.DTO.PaymentsRequestDTO;
+import com.example.datnbe.Entity.OrderItems;
 import com.example.datnbe.Entity.Orders;
 import com.example.datnbe.Entity.Payments;
 import com.example.datnbe.Mapper.EmployeeMapper;
@@ -51,6 +52,12 @@ public class VNPAYService {
         optionalOrder.get().setAddress(dto.getAddress());
         orderRepository.save(optionalOrder.get());
 
+        List<OrderItems> existingItemsWithOrderTime = orderItemsRepository.findAllByOrderIdAndOrderTimeNotNull(dto.getOrderId());
+        int nextOrderTime = existingItemsWithOrderTime.stream()
+                .mapToInt(OrderItems::getOrderTime)
+                .max()
+                .orElse(0) + 1;
+
         Optional<Payments> paymentsOptional = paymentRepository.findLatestByOrderIdAndStatus(dto.getOrderId(), "pending");
         if (paymentsOptional.isEmpty()) {
             Payments payments = new Payments();
@@ -60,6 +67,7 @@ public class VNPAYService {
             payments.setAmount(optionalOrder.get().getTotalAmount());
             payments.setMethod("bank_transfer");
             payments.setStatus("pending");
+            payments.setOrderTime(nextOrderTime);
 
             paymentRepository.save(payments);
         } else {

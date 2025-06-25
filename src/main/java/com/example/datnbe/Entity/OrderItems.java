@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_items")
-@Data
 public class OrderItems {
     @Id
     @Column(name = "id")
@@ -27,4 +26,52 @@ public class OrderItems {
 
     @Column(name = "order_time")
     private Integer orderTime;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public Integer getOrderTime() {
+        return orderTime;
+    }
+
+    public void setOrderTime(Integer orderTime) {
+        this.orderTime = orderTime;
+    }
 }

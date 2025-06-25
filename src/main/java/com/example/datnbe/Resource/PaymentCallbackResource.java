@@ -54,6 +54,12 @@ public class PaymentCallbackResource {
         return ResponseEntity.ok(vnpayUrl);
     }
 
+    @PostMapping("/submitOrder-offline")
+    public ResponseEntity<String> createOrderOffline(@RequestBody PaymentsRequestDTO dto){
+        String result = paymentService.createOrderOffline(dto);
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/payment-statistic-by-month")
     public ResponseEntity<List<PaymentStatisticByMonthDTO>> getStatisticByMonth(
             @RequestParam("startDate") LocalDate startDate,
@@ -90,5 +96,11 @@ public class PaymentCallbackResource {
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(
                 ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    @GetMapping("/get-detail-payment/{paymentId}")
+    public ResponseEntity<PaymentsDTO> getDetailPayment(@PathVariable String paymentId) throws Exception {
+        PaymentsDTO paymentsDTO = paymentService.getDetailPayment(paymentId);
+        return ResponseEntity.ok(paymentsDTO);
     }
 }

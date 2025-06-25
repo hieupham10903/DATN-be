@@ -19,6 +19,8 @@ public interface OrderItemsRepository extends JpaRepository<OrderItems, String>,
 
     List<OrderItems> findAllByOrderId(String orderId);
 
+    List<OrderItems> findAllByOrderIdAndOrderTime(String orderId, int orderTime);
+
     Optional<OrderItems> findByOrderIdAndProductIdAndOrderTimeNull(String orderId, String productId);
 
     @Query("SELECT MAX(oi.orderTime) FROM OrderItems oi WHERE oi.orderId = :orderId AND oi.orderTime IS NOT NULL")
