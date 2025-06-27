@@ -28,4 +28,6 @@ public interface OrderItemsRepository extends JpaRepository<OrderItems, String>,
 
     @Query("SELECT oi FROM OrderItems oi WHERE oi.orderId = :orderId AND oi.orderTime = :orderTime")
     List<OrderItems> findAllByOrderIdAndOrderTime(String orderId, Integer orderTime);
-}
+
+    @Query("SELECT DISTINCT o.orderTime FROM OrderItems o WHERE o.orderId = :orderId AND o.orderTime IS NOT NULL ORDER BY o.orderTime ASC")
+    List<Integer> findDistinctOrderTimeByOrderId(String orderId);}

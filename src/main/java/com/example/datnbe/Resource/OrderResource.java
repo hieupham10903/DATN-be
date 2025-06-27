@@ -1,5 +1,6 @@
 package com.example.datnbe.Resource;
 
+import com.example.datnbe.Entity.DTO.OrderHistoryResponseDTO;
 import com.example.datnbe.Entity.DTO.OrderItemsDTO;
 import com.example.datnbe.Entity.DTO.OrderItemsResponse;
 import com.example.datnbe.Entity.DTO.OrdersDTO;
@@ -53,5 +54,9 @@ public class OrderResource {
         List<OrderItemsDTO> items = orderService.getItemsWithMaxOrderTime(orderId);
         return ResponseEntity.ok(items);
     }
-
+    @GetMapping("/order-history/{orderId}")
+    public ResponseEntity<List<OrderHistoryResponseDTO>> getOrderHistory(@PathVariable String orderId) {
+        List<OrderHistoryResponseDTO> history = orderService.getOrderHistory(orderId);
+        return ResponseEntity.ok(history);
+    }
 }

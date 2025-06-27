@@ -54,4 +54,5 @@ public interface PaymentRepository extends JpaRepository<Payments, String>, JpaS
     @Query("SELECT SUM(p.amount) FROM Payments p WHERE p.status = 'paid'")
     BigDecimal getTotalRevenue();
 
+    Payments findByOrderIdAndOrderTime(String orderId, Integer orderTime);
 }

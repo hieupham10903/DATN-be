@@ -14,4 +14,5 @@ public class OrderItemsDTO {
     private Integer orderTime;
 
     private String productName;
+    private String productImageUrl;
 }

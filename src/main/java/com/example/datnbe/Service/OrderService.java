@@ -1,5 +1,6 @@
 package com.example.datnbe.Service;
 
+import com.example.datnbe.Entity.DTO.OrderHistoryResponseDTO;
 import com.example.datnbe.Entity.DTO.OrderItemsDTO;
 import com.example.datnbe.Entity.DTO.OrderItemsResponse;
 import com.example.datnbe.Entity.DTO.OrdersDTO;
@@ -206,4 +207,46 @@ public class OrderService {
         }).toList();
     }
 
+    public List<OrderHistoryResponseDTO> getOrderHistory(String orderId) {
+        List<Integer> orderTimes = orderItemsRepository.findDistinctOrderTimeByOrderId(orderId);
+
+        List<OrderHistoryResponseDTO> result = new ArrayList<>();
+
+        for (Integer orderTime : orderTimes) {
+            List<OrderItems> items = orderItemsRepository.findAllByOrderIdAndOrderTime(orderId, orderTime);
+
+            List<OrderItemsDTO> dtoList = items.stream().map(item -> {
+                OrderItemsDTO dto = new OrderItemsDTO();
+                dto.setId(item.getId());
+                dto.setOrderId(item.getOrderId());
+                dto.setProductId(item.getProductId());
+                dto.setQuantity(item.getQuantity());
+                dto.setPrice(item.getPrice());
+                dto.setOrderTime(item.getOrderTime());
+
+                Products product = productRepository.findById(item.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+                dto.setProductName(product.getName());
+                dto.setProductImageUrl(product.getImageUrl());
+
+                return dto;
+            }).collect(Collectors.toList());
+
+            Payments payment = paymentRepository.findByOrderIdAndOrderTime(orderId, orderTime);
+
+            OrderHistoryResponseDTO response = new OrderHistoryResponseDTO();
+            response.setOrderTime(orderTime);
+            response.setItems(dtoList);
+
+            if (payment != null) {
+                response.setPaymentDate(payment.getPaymentDate() != null ? payment.getPaymentDate().toString() : null);
+                response.setPaymentStatus(payment.getStatus());
+            }
+
+            result.add(response);
+        }
+
+        return result;
+    }
 }
