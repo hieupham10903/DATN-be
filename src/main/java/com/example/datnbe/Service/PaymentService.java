@@ -10,10 +10,7 @@ import com.example.datnbe.Mapper.EmployeeMapper;
 import com.example.datnbe.Mapper.OrderItemsMapper;
 import com.example.datnbe.Mapper.OrderMapper;
 import com.example.datnbe.Mapper.PaymentMapper;
-import com.example.datnbe.Repository.EmployeeRepository;
-import com.example.datnbe.Repository.OrderItemsRepository;
-import com.example.datnbe.Repository.OrderRepository;
-import com.example.datnbe.Repository.PaymentRepository;
+import com.example.datnbe.Repository.*;
 import com.example.datnbe.config.VnPayProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,13 +52,13 @@ public class PaymentService extends ArcQueryService<Payments> {
     @Autowired
     private EmployeeRepository employeeRepository;
     @Autowired
-    private PaymentsRepository paymentsRepository;
+    private PaymentRepository paymentsRepository;
     @Autowired
     private OrderItemsMapper orderItemsMapper;
     @Autowired
-    private ProductsRepository productsRepository;
+    private ProductRepository productsRepository;
     @Autowired
-    private OrdersRepository ordersRepository;
+    private OrderRepository ordersRepository;
 
     public void paymentSuccess(String orderId) {
         Optional<Orders> optionalOrder = orderRepository.findById(orderId);
