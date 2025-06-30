@@ -140,6 +140,4 @@ public class ProductService extends ArcQueryService<Products> {
 
         return list;
     }
-
-
 }
