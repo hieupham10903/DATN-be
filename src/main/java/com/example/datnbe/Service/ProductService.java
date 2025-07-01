@@ -83,16 +83,26 @@ public class ProductService extends ArcQueryService<Products> {
     }
 
     public ProductsDTO createProduct(ProductsDTO dto) {
+        if (productRepository.existsByCode(dto.getCode())) {
+            throw new ServiceException("Mã sản phẩm đã tồn tại");
+        }
+
         Products product = productMapper.toEntity(dto);
         product.setId(UUID.randomUUID().toString());
         product.setCreatedAt(LocalDateTime.now());
         return productMapper.toDto(productRepository.save(product));
     }
 
+
     public ProductsDTO updateProduct(ProductsDTO dto) {
         Optional<Products> optionalProduct = productRepository.findById(dto.getId());
         if (optionalProduct.isEmpty()) {
             throw new ServiceException("Không tìm thấy sản phẩm");
+        }
+
+        if (productRepository.existsByCode(dto.getCode()) &&
+                !optionalProduct.get().getCode().equals(dto.getCode())) {
+            throw new ServiceException("Mã sản phẩm đã tồn tại");
         }
 
         Products existingProduct = optionalProduct.get();
@@ -108,6 +118,7 @@ public class ProductService extends ArcQueryService<Products> {
 
         return productMapper.toDto(productRepository.save(existingProduct));
     }
+
 
     public void deleteProduct(String id) {
         if (!productRepository.existsById(id)) {

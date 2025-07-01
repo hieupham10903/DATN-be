@@ -96,7 +96,7 @@ public class ProductResource {
         return ResponseEntity.ok(productService.updateProduct(dto));
     }
 
-    @DeleteMapping("/delete-product")
+    @PostMapping("/delete-product")
     public ResponseEntity<Void> deleteProduct(@RequestParam String id) {
         productService.deleteProduct(id);
         return ResponseEntity.ok().build();

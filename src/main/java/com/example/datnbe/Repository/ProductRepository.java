@@ -23,4 +23,5 @@ public interface ProductRepository extends JpaRepository<Products, String>, JpaS
 
     Products findNameById(String id);
 
+    boolean existsByCode(String code);
 }
