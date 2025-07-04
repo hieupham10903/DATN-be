@@ -19,6 +19,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.nio.file.Watchable;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -121,11 +122,29 @@ public class ProductService extends ArcQueryService<Products> {
 
 
     public void deleteProduct(String id) {
-        if (!productRepository.existsById(id)) {
+        Optional<Products> optionalProduct = productRepository.findById(id);
+        if (optionalProduct.isEmpty()) {
             throw new ServiceException("Không tìm thấy sản phẩm để xóa");
         }
+
+        Products product = optionalProduct.get();
+
+        if (product.getImageUrl() != null) {
+            File mainImage = new File(product.getImageUrl());
+            if (mainImage.exists()) mainImage.delete();
+        }
+
+        if (product.getImageDetail() != null && !product.getImageDetail().isEmpty()) {
+            String[] detailImages = product.getImageDetail().split(",");
+            for (String imagePath : detailImages) {
+                File imageFile = new File(imagePath.trim());
+                if (imageFile.exists()) imageFile.delete();
+            }
+        }
+
         productRepository.deleteById(id);
     }
+
 
     public List<ProductCategoryStatisticDTO> getProductStatisticWithCategoryName() {
         return productRepository.getProductStatisticByCategoryWithName();
