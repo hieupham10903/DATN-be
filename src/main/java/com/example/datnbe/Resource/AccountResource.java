@@ -55,4 +55,15 @@ public class AccountResource {
 
         return ResponseEntity.ok(employeeDTO);
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody AccountRequest request) {
+        boolean isChanged = accountService.changePassword(request.getUsername(), request.getPassword(), request.getNewPassword());
+
+        if (isChanged) {
+            return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công!"));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Mật khẩu cũ không đúng hoặc tài khoản không tồn tại!"));
+        }
+    }
 }

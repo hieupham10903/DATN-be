@@ -118,4 +118,23 @@ public class AccountService {
         return employeeDTO;
     }
 
+    public boolean changePassword(String username, String oldPassword, String newPassword) {
+        Optional<Account> optionalAccount = accountRepository.findByUsername(username);
+
+        if (optionalAccount.isPresent()) {
+            Account account = optionalAccount.get();
+
+            // Kiểm tra mật khẩu cũ
+            if (passwordEncoder.matches(oldPassword, account.getPassword())) {
+                // Mã hóa và lưu mật khẩu mới
+                account.setPassword(passwordEncoder.encode(newPassword));
+                accountRepository.save(account);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
 }
