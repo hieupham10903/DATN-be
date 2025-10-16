@@ -26,6 +26,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.PaginationUtil;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,7 +49,7 @@ public class PaymentCallbackResource {
 
     @PostMapping("/submitOrder")
     public ResponseEntity<String> submidOrder(@RequestBody PaymentsRequestDTO dto,
-                                              HttpServletRequest request){
+                                              HttpServletRequest request) throws UnsupportedEncodingException {
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         String vnpayUrl = vnPayService.createOrder(request, dto, baseUrl);
         return ResponseEntity.ok(vnpayUrl);

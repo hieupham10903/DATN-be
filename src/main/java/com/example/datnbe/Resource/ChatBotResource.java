@@ -174,7 +174,7 @@ public class ChatBotResource {
     private String buildProductInfoString(List<ProductsDTO> products) {
         StringBuilder sb = new StringBuilder();
         for (ProductsDTO p : products) {
-            String productLink = "https://datn-fe-client.vercel.app/product/" + p.getId();
+            String productLink = "https://datn-fe-client-orcin.vercel.app/product/" + p.getId();
             sb.append("- ")
                     .append(p.getName()).append(" (")
                     .append(formatCurrencyVND(p.getPrice())).append(", ")

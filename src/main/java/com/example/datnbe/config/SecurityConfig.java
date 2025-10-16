@@ -37,7 +37,8 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://localhost:3001",
                 "https://datn-fe-phi.vercel.app",
-                "https://datn-fe-client.vercel.app"
+                "https://datn-fe-client.vercel.app",
+                "https://datn-fe-client-orcin.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

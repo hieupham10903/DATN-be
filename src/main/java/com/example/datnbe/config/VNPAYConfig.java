@@ -17,10 +17,10 @@ import java.util.*;
 @Setter
 public class VNPAYConfig {
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static String vnp_Returnurl = "https://datn-fe-client.vercel.app/payment-success";
+    public static String vnp_ReturnUrl = "https://datn-fe-client-orcin.vercel.app/payment-success";
 //    public static String vnp_Returnurl = "http://localhost:3001/payment-success";
-    public static String vnp_TmnCode = "S0F6OCK8";
-    public static String vnp_HashSecret = "ENBFXEED2OES1CJ5OPI6KIGE3OGO3BZ8";
+    public static String vnp_TmnCode = "XS6WWRMN";
+    public static String secretKey = "PKRHQZVSLJBZKLLCLETT01PYY6S571DS";
     public static String vnp_apiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
 
 
@@ -41,7 +41,7 @@ public class VNPAYConfig {
                 sb.append("&");
             }
         }
-        return hmacSHA512(vnp_HashSecret,sb.toString());
+        return hmacSHA512(secretKey,sb.toString());
     }
 
     public static String hmacSHA512(final String key, final String data) {

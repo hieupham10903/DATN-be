@@ -43,7 +43,7 @@ public class VNPAYService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    public String createOrder(HttpServletRequest request, PaymentsRequestDTO dto, String urlReturn) {
+    public String createOrder(HttpServletRequest request, PaymentsRequestDTO dto, String urlReturn) throws UnsupportedEncodingException {
         Optional<Orders> optionalOrder = orderRepository.findById(dto.getOrderId());
         if (optionalOrder.isEmpty()) {
             throw new ServiceException("Không tìm thấy đơn hàng.");
@@ -81,26 +81,30 @@ public class VNPAYService {
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        String vnp_TxnRef = UUID.randomUUID().toString();
-        String vnp_IpAddr = VNPAYConfig.getIpAddress(request);
+        String orderType = "other";
+
+        long amount = order.getTotalAmount().longValue() * 100;  // Chuyển thành đơn vị nhỏ nhất (VND * 100)
+        if (amount < 100000) {  // Kiểm tra min amount 1,000 VND
+            throw new IllegalArgumentException("Số tiền không hợp lệ, tối thiểu 1,000 VND");
+        }
+
+        String vnp_TxnRef = UUID.randomUUID().toString();  // Sử dụng UUID thay vì random 8 ký tự để đảm bảo unique
+        String vnp_IpAddr = VNPAYConfig.getIpAddress(request);  // Lấy IP thực tế từ request
         String vnp_TmnCode = VNPAYConfig.vnp_TmnCode;
-        String orderType = "order-type";
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
         vnp_Params.put("vnp_Command", vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
-        vnp_Params.put("vnp_Amount", String.valueOf(order.getTotalAmount().longValue() * 100));
+        vnp_Params.put("vnp_Amount", String.valueOf(amount));
         vnp_Params.put("vnp_CurrCode", "VND");
 
+        // Loại bỏ vnp_BankCode để người dùng chọn thủ công
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-        vnp_Params.put("vnp_OrderInfo", "Thanh toán đơn hàng " + dto.getOrderId());
+        vnp_Params.put("vnp_OrderInfo", URLEncoder.encode("Thanh toan don hang: " + dto.getOrderId(), StandardCharsets.UTF_8.toString()));
         vnp_Params.put("vnp_OrderType", orderType);
-
-        String locate = "vn";
-        vnp_Params.put("vnp_Locale", locate);
-
-        vnp_Params.put("vnp_ReturnUrl", VNPAYConfig.vnp_Returnurl);
+        vnp_Params.put("vnp_Locale", "vn");
+        vnp_Params.put("vnp_ReturnUrl", VNPAYConfig.vnp_ReturnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -108,43 +112,37 @@ public class VNPAYService {
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
-        cld.add(Calendar.MINUTE, 15);
+        cld.add(Calendar.MINUTE, 60);  // Tăng lên 60 phút để tránh lỗi timeout
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 
-        List fieldNames = new ArrayList(vnp_Params.keySet());
-        Collections.sort(fieldNames);
+        // Log params để debug
+        System.out.println("VNPAY Params: " + vnp_Params);
+        System.out.println("CreateDate: " + vnp_CreateDate + ", ExpireDate: " + vnp_ExpireDate);
+        System.out.println("IpAddr: " + vnp_IpAddr);
+
+        List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
+        Collections.sort(fieldNames);  // Sắp xếp theo alphabet theo tài liệu
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
-        Iterator itr = fieldNames.iterator();
-        while (itr.hasNext()) {
-            String fieldName = (String) itr.next();
-            String fieldValue = (String) vnp_Params.get(fieldName);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                //Build hash data
-                hashData.append(fieldName);
-                hashData.append('=');
-                try {
-                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                    //Build query
-                    query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
-                    query.append('=');
-                    query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                if (itr.hasNext()) {
-                    query.append('&');
+        for (String fieldName : fieldNames) {
+            String fieldValue = vnp_Params.get(fieldName);
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                hashData.append(fieldName).append('=')
+                        .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()))
+                        .append('=')
+                        .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                if (fieldNames.indexOf(fieldName) < fieldNames.size() - 1) {
                     hashData.append('&');
+                    query.append('&');
                 }
             }
         }
-        String queryUrl = query.toString();
-        String salt = VNPAYConfig.vnp_HashSecret;
-        String vnp_SecureHash = VNPAYConfig.hmacSHA512(salt, hashData.toString());
-        queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
-        String paymentUrl = VNPAYConfig.vnp_PayUrl + "?" + queryUrl;
-        return paymentUrl;
+
+        String vnp_SecureHash = VNPAYConfig.hmacSHA512(VNPAYConfig.secretKey, hashData.toString());
+        query.append("&vnp_SecureHash=").append(vnp_SecureHash);
+        return VNPAYConfig.vnp_PayUrl + "?" + query;
     }
 
     public int orderReturn(HttpServletRequest request) {

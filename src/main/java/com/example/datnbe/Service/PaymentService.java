@@ -219,7 +219,7 @@ public class PaymentService extends ArcQueryService<Payments> {
             payments.setPaymentDate(LocalDateTime.now());
             payments.setAmount(optionalOrder.get().getTotalAmount());
             payments.setMethod("offline");
-            payments.setStatus("pending");
+            payments.setStatus("paid");
             payments.setOrderTime(nextOrderTime);
 
             paymentRepository.save(payments);
